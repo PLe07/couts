@@ -69,7 +69,6 @@
 
         .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-top: 10px; font-size: 1rem; }
         .btn-share { background: #38bdf8; color: #1e293b; }
-        .btn-share:hover { background: #0ea5e9; }
         
         .table-amort { width: 100%; text-align: left; border-collapse: collapse; font-size: 0.85rem; margin-top: 15px; }
         .table-amort th { border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; }
@@ -87,7 +86,6 @@
             .tab.active { background: #334155; }
             .tabs { border-color: #334155; }
             .info-card { background: #1e293b; }
-            .table-amort td, .table-amort th { border-color: #475569; }
         }
 
         @media (max-width: 850px) { 
@@ -110,45 +108,46 @@
     <div id="view-simple" class="view active">
         
         <div id="check-vigilance" class="info-card" style="margin-bottom: 20px; border: 1px solid #e2e8f0;">
-            <h4 style="margin: 0 0 10px 0; font-size: 0.9rem;">🧐 Checklist Coach</h4>
+            <h4 style="margin: 0 0 10px 0; font-size: 0.9rem;">🧐 L'avis de ton Coach</h4>
             <ul id="vigilance-list" style="margin: 0; padding-left: 20px; font-size: 0.85rem;"></ul>
         </div>
 
         <div class="grid">
             <div class="input-group">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div><label>Prix total (€)</label><input type="number" id="s-cap" value="15000" oninput="run()"></div>
-                    <div><label>Apport (€)</label><input type="number" id="s-apport" value="3000" oninput="run()"></div>
+                    <div><label>Prix de l'objet (€)</label><input type="number" id="s-cap" value="15000" oninput="run()"></div>
+                    <div><label>Argent mis de côté (€)</label><input type="number" id="s-apport" value="3000" oninput="run()"></div>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div><label>Taux (%)</label><input type="number" id="s-rate" value="4.5" step="0.1" oninput="run()"></div>
+                    <div><label>Taux du prêt (%)</label><input type="number" id="s-rate" value="4.5" step="0.1" oninput="run()"></div>
                     <div><label>Durée (mois)</label><input type="number" id="s-dur" value="48" oninput="run()"></div>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div><label>Assurance (€/m)</label><input type="number" id="s-extra" value="30" oninput="run()"></div>
-                    <div><label>Revenus nets</label><input type="number" id="s-income" value="2200" oninput="run()"></div>
+                    <div><label>Assurance/Frais (€/m)</label><input type="number" id="s-extra" value="30" oninput="run()"></div>
+                    <div><label>Mes revenus nets (€)</label><input type="number" id="s-income" value="2200" oninput="run()"></div>
                 </div>
                 <hr style="opacity:0.1; margin: 15px 0;">
-                <label>Boost remboursement (+€/mois)</label>
+                <label>Vouloir payer plus par mois (+€)</label>
                 <input type="number" id="s-boost" value="0" placeholder="Ex: 50" oninput="run()">
                 
                 <div style="display:flex; gap:10px; margin-top:15px;">
-                    <input type="text" id="s-proj-name" placeholder="Nom (ex: Clio 5)" style="margin-bottom:0;">
+                    <input type="text" id="s-proj-name" placeholder="Nom du projet (ex: Clio 5)" style="margin-bottom:0;">
                     <button onclick="saveFavorite()" class="btn" style="margin-top:0; width:60px; background:var(--warning); color:white;">⭐</button>
                 </div>
+                <button onclick="shareLink()" class="btn btn-share" style="margin-top:10px;">🔗 Partager ce calcul</button>
             </div>
             
             <div>
                 <div class="card-result">
-                    <span style="font-size:0.9rem; opacity:0.8;">MENSUALITÉ</span>
+                    <span style="font-size:0.9rem; opacity:0.8;">JE PAYE CHAQUE MOIS :</span>
                     <span class="big-val" id="res-m-total">0 €</span>
                     <p id="res-detail" style="font-size:0.85rem; margin-top:5px; opacity:0.7;"></p>
-                    <p id="res-emprunt" style="font-size:0.85rem; font-weight:bold; color:var(--success); margin-top:5px;"></p>
+                    <p id="res-date-fin" style="font-size:0.9rem; font-weight:bold; color: #38bdf8; margin-top:8px;"></p>
                     <div id="boost-notif" style="color:var(--success); font-weight:bold; font-size:0.85rem; margin-top:5px;"></div>
                 </div>
                 
                 <div class="info-card" id="debt-zone">
-                    <div id="gauge-label" style="font-weight:bold;">Endettement : 0%</div>
+                    <div id="gauge-label" style="font-weight:bold;">Poids sur mon budget : 0%</div>
                     <div class="gauge-container"><div id="gauge-bar" class="gauge-bar"></div></div>
                     <div id="debt-msg"></div>
                 </div>
@@ -157,22 +156,20 @@
                     <canvas id="chartSimple"></canvas>
                 </div>
 
-                <button onclick="document.getElementById('amort-box').classList.toggle('hidden')" class="btn" style="background:#e2e8f0; color:#1e293b; font-size:0.9rem;">📅 Voir l'amortissement par année</button>
+                <button onclick="document.getElementById('amort-box').classList.toggle('hidden')" class="btn" style="background:#e2e8f0; color:#1e293b; font-size:0.8rem;">📅 Calendrier de paiement annuel</button>
                 <div id="amort-box" class="hidden" style="overflow-x:auto;">
                     <table class="table-amort">
                         <thead><tr><th>Année</th><th>Intérêts</th><th>Capital</th><th>Reste dû</th></tr></thead>
                         <tbody id="amort-body"></tbody>
                     </table>
                 </div>
-
             </div>
         </div>
 
         <div style="margin-top:30px;">
-            <h4 style="margin-bottom:5px;">⭐ Mes Projets Sauvegardés</h4>
+            <h4 style="margin-bottom:10px;">⭐ Mes simulations enregistrées</h4>
             <div id="favorites-container" class="fav-grid"></div>
         </div>
-
     </div>
 
     <div id="view-compare" class="view">
@@ -192,21 +189,21 @@
                 <div id="c2-res" style="color:var(--primary); font-weight:bold; font-size: 1.1rem; margin-top: 10px;">--</div>
             </div>
         </div>
-        <div id="compare-winner" class="card-result" style="margin-top: 20px; background: var(--primary)">Comparez deux options</div>
+        <div id="compare-winner" class="card-result" style="margin-top: 20px; background: var(--primary)">Quelle est la meilleure option ?</div>
     </div>
 
     <div id="view-capacity" class="view">
         <div class="grid">
             <div class="input-group">
-                <label>Mensualité Max (€/mois)</label>
+                <label>Mensualité que je peux payer (€/mois)</label>
                 <input type="number" id="cap-m" value="300" oninput="calcCap()">
-                <label>Taux (%)</label>
+                <label>Taux de la banque (%)</label>
                 <input type="number" id="cap-r" value="4.5" oninput="calcCap()">
-                <label>Durée (années)</label>
+                <label>Pendant combien d'années ?</label>
                 <input type="number" id="cap-y" value="5" oninput="calcCap()">
             </div>
             <div class="card-result" style="background: var(--success)">
-                <span style="font-size:0.9rem; opacity:0.8;">CAPACITÉ D'EMPRUNT</span>
+                <span style="font-size:0.9rem; opacity:0.8;">JE PEUX ACHETER UN OBJET DE :</span>
                 <span class="big-val" id="cap-res" style="color: white">0 €</span>
             </div>
         </div>
@@ -237,8 +234,8 @@ window.onload = () => {
 
 function run() {
     const prixTotal = parseFloat(document.getElementById('s-cap').value) || 0;
-    const apport = parseFloat(document.getElementById('s-apport').value) || 0;
-    const P = Math.max(0, prixTotal - apport); // Le montant réellement emprunté
+    const argentDeCote = parseFloat(document.getElementById('s-apport').value) || 0;
+    const P = Math.max(0, prixTotal - argentDeCote); // Le montant à emprunter
 
     const r_ann = parseFloat(document.getElementById('s-rate').value) / 100;
     const n_base = parseInt(document.getElementById('s-dur').value) || 0;
@@ -246,121 +243,111 @@ function run() {
     const income = parseFloat(document.getElementById('s-income').value) || 0;
     const boost = parseFloat(document.getElementById('s-boost').value) || 0;
 
-    if (n_base <= 0 || P < 0) return;
+    if (n_base <= 0) return;
 
     const r = r_ann / 12;
     const m_base = r === 0 ? P / n_base : (P * r) / (1 - Math.pow(1 + r, -n_base));
     
-    // Logique de remboursement anticipé (Boost)
     let m_boosted = m_base + boost;
-    let n_new = n_base;
+    let n_actual = n_base;
     if (boost > 0 && r > 0) {
         let val = 1 - (P * r) / m_boosted;
-        if (val > 0) n_new = -Math.log(val) / Math.log(1 + r);
+        if (val > 0) n_actual = -Math.log(val) / Math.log(1 + r);
     }
 
     const m_total = m_boosted + extra;
-    const total_int = (m_boosted * n_new) - P;
+    const total_int = (m_boosted * n_actual) - P;
     const ratio = income > 0 ? (m_total / income) * 100 : 0;
 
-    // Mise à jour de l'interface
+    // Calcul date de fin
+    const dateFin = new Date();
+    dateFin.setMonth(dateFin.getMonth() + Math.ceil(n_actual));
+    const optionsDate = { month: 'long', year: 'numeric' };
+    
     document.getElementById('res-m-total').innerText = Math.round(m_total) + " €";
     document.getElementById('res-detail').innerText = `${Math.round(m_boosted)}€ (prêt) + ${extra}€ (frais)`;
-    document.getElementById('res-emprunt').innerText = `Capital emprunté : ${P} €`;
+    document.getElementById('res-date-fin').innerText = `🏁 Libéré de ce prêt en ${dateFin.toLocaleDateString('fr-FR', optionsDate)}`;
 
-    // Jauge d'endettement
+    // Jauge
     const gBar = document.getElementById('gauge-bar');
     const gZone = document.getElementById('debt-zone');
-    document.getElementById('gauge-label').innerText = `Endettement : ${ratio.toFixed(1)}%`;
+    document.getElementById('gauge-label').innerText = `Poids sur mon budget : ${ratio.toFixed(1)}%`;
     gBar.style.width = Math.min(ratio, 100) + "%";
     
-    if (ratio < 20) { gBar.style.background = "var(--success)"; gZone.className="info-card success-bg"; document.getElementById('debt-msg').innerText="Budget sain."; }
-    else if (ratio < 33) { gBar.style.background = "var(--warning)"; gZone.className="info-card warning-bg"; document.getElementById('debt-msg').innerText="Vigilance (limite 33%)."; }
-    else { gBar.style.background = "var(--danger)"; gZone.className="info-card danger-bg"; document.getElementById('debt-msg').innerText="Alerte : endettement trop élevé !"; }
+    if (ratio < 20) { gBar.style.background = "var(--success)"; gZone.className="info-card success-bg"; document.getElementById('debt-msg').innerText="✅ C'est très raisonnable."; }
+    else if (ratio < 33) { gBar.style.background = "var(--warning)"; gZone.className="info-card warning-bg"; document.getElementById('debt-msg').innerText="⚠️ Attention, c'est la limite conseillée."; }
+    else { gBar.style.background = "var(--danger)"; gZone.className="info-card danger-bg"; document.getElementById('debt-msg').innerText="🚨 Danger : trop d'endettement !"; }
 
-    updateVigilance(P, r_ann * 100, n_new, ratio, total_int, extra * n_new, apport, prixTotal);
-    
-    // Génération du tableau d'amortissement
-    generateAmortization(P, r, m_boosted, n_new);
+    updateVigilance(P, r_ann * 100, n_actual, ratio, total_int, argentDeCote, prixTotal);
+    generateAmortization(P, r, m_boosted, n_actual);
 
-    if (boost > 0) document.getElementById('boost-notif').innerText = `🚀 Gain : -${Math.round(n_base - n_new)} mois de crédit !`;
+    if (boost > 0) document.getElementById('boost-notif').innerText = `🚀 Gain : -${Math.round(n_base - n_actual)} mois !`;
     else document.getElementById('boost-notif').innerText = "";
 
-    updateChart(apport, P, total_int, extra * n_new);
-    localStorage.setItem('financeProSave', JSON.stringify({cap: prixTotal, apport: apport, rate: r_ann*100, dur: n_base, inc: income}));
+    updateChart(argentDeCote, P, total_int, extra * n_actual);
+    localStorage.setItem('financeProSave', JSON.stringify({cap: prixTotal, apport: argentDeCote, rate: r_ann*100, dur: n_base, inc: income}));
+}
+
+function updateVigilance(P, r_ann_pct, n, ratio, int, apport, prixTotal) {
+    const list = document.getElementById('vigilance-list');
+    list.innerHTML = "";
+    let conseils = [];
+    
+    if (P === 0) { conseils.push("🥳 <b>Bravo !</b> Tu as assez d'argent pour payer cash."); }
+    else {
+        if (apport >= (prixTotal * 0.2)) conseils.push("💰 <b>Super apport :</b> Tu empruntes moins, donc tu payes moins d'intérêts.");
+        if (r_ann_pct > 5) conseils.push("❌ <b>Taux élevé :</b> Essaye de négocier en dessous de 5%.");
+        if (n > 60) conseils.push("⚠️ <b>Crédit trop long :</b> Plus de 5 ans sur un petit objet, c'est risqué.");
+        if (int > (P * 0.25)) conseils.push("💸 <b>Crédit cher :</b> Les intérêts coûtent plus du quart du prix !");
+    }
+    
+    conseils.forEach(txt => { let li = document.createElement('li'); li.innerHTML = txt; li.style.marginBottom = "5px"; list.appendChild(li); });
 }
 
 function generateAmortization(P, r_monthly, monthly_pay, months) {
     const tbody = document.getElementById('amort-body');
     tbody.innerHTML = '';
     let balance = P;
-    let yearInt = 0; let yearPrin = 0;
-
+    let yInt = 0; let yPrin = 0;
     for(let i=1; i<=Math.ceil(months); i++) {
         let interest = balance * r_monthly;
-        let principal = monthly_pay - interest;
-        if(principal > balance) principal = balance;
+        let principal = Math.min(balance, monthly_pay - interest);
         balance -= principal;
-        yearInt += interest; yearPrin += principal;
-
-        // On affiche un résumé par année pour que ce soit lisible sur mobile
+        yInt += interest; yPrin += principal;
         if(i % 12 === 0 || i === Math.ceil(months)) {
-            let year = Math.ceil(i/12);
-            tbody.innerHTML += `<tr>
-                <td><b>Année ${year}</b></td>
-                <td>${yearInt.toFixed(0)}€</td>
-                <td>${yearPrin.toFixed(0)}€</td>
-                <td style="color:var(--primary); font-weight:bold;">${Math.max(0, balance).toFixed(0)}€</td>
-            </tr>`;
-            yearInt = 0; yearPrin = 0;
+            tbody.innerHTML += `<tr><td>Année ${Math.ceil(i/12)}</td><td>${Math.round(yInt)}€</td><td>${Math.round(yPrin)}€</td><td style="font-weight:bold;">${Math.round(Math.max(0, balance))}€</td></tr>`;
+            yInt = 0; yPrin = 0;
         }
     }
-}
-
-function updateVigilance(P, r_ann_pct, n, ratio, int, totalFees, apport, prixTotal) {
-    const list = document.getElementById('vigilance-list');
-    if(!list) return;
-    list.innerHTML = "";
-    let conseils = [];
-    
-    if (apport >= (prixTotal * 0.2)) conseils.push("💎 <b>Bon apport :</b> Tu finances 20% ou plus toi-même, c'est excellent pour réduire le coût du crédit.");
-    else if (apport === 0) conseils.push("⚠️ <b>Aucun apport :</b> Emprunter à 100% coûte cher. Es-tu sûr de ne pas pouvoir mettre un petit billet ?");
-
-    if (r_ann_pct > 5) conseils.push("❌ <b>Taux élevé :</b> Ton taux dépasse 5%.");
-    if (n > 60) conseils.push("⚠️ <b>Durée longue :</b> Beaucoup d'intérêts sur la durée.");
-    if (ratio > 33) conseils.push("🚨 <b>Danger budget :</b> Tu dépasses les 33% d'endettement !");
-    
-    conseils.forEach(txt => { let li = document.createElement('li'); li.innerHTML = txt; li.style.marginBottom = "5px"; list.appendChild(li); });
 }
 
 function updateChart(apport, emprunt, int, fees) {
     const ctx = document.getElementById('chartSimple').getContext('2d');
     if (chartS) chartS.destroy();
     chartS = new Chart(ctx, {
-        type: 'doughnut',
+        type: 'pie',
         data: { 
-            labels: ['Apport', 'Emprunt', 'Intérêts', 'Frais'], 
+            labels: ['Argent à moi', 'Prêt (Capital)', 'Coût Intérêts', 'Frais'], 
             datasets: [{ data: [apport, emprunt, int, fees], backgroundColor: ['#10b981', '#3b82f6', '#ef4444', '#f59e0b'] }] 
         },
-        options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+        options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 }
 
-// --- GESTION DES FAVORIS ---
 function saveFavorite() {
-    const name = document.getElementById('s-proj-name').value || 'Projet sans nom';
+    const name = document.getElementById('s-proj-name').value || 'Sans nom';
     const data = {
         id: Date.now(), name: name,
         cap: document.getElementById('s-cap').value,
         apport: document.getElementById('s-apport').value,
         rate: document.getElementById('s-rate').value,
         dur: document.getElementById('s-dur').value,
-        extra: document.getElementById('s-extra').value
+        extra: document.getElementById('s-extra').value,
+        inc: document.getElementById('s-income').value
     };
     let favs = JSON.parse(localStorage.getItem('financeFavs')) || [];
     favs.push(data);
     localStorage.setItem('financeFavs', JSON.stringify(favs));
-    document.getElementById('s-proj-name').value = ''; // Reset
     renderFavorites();
 }
 
@@ -371,11 +358,11 @@ function renderFavorites() {
     favs.forEach(f => {
         container.innerHTML += `
             <div class="fav-card" onclick="loadFavorite(${f.id})">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <b style="color:var(--primary); font-size:0.9rem;">${f.name}</b>
-                    <span onclick="event.stopPropagation(); deleteFavorite(${f.id})" style="color:var(--danger); font-size:1.2rem;">×</span>
+                <div style="display:flex; justify-content:space-between;">
+                    <b style="color:var(--primary);">${f.name}</b>
+                    <span onclick="event.stopPropagation(); deleteFavorite(${f.id})" style="color:var(--danger); font-weight:bold;">×</span>
                 </div>
-                <div style="font-size:0.8rem; opacity:0.8; margin-top:5px;">Prix: ${f.cap}€ | Apport: ${f.apport}€<br>${f.dur} mois à ${f.rate}%</div>
+                <div style="font-size:0.75rem; margin-top:5px; opacity:0.8;">${f.cap}€ (${f.dur} mois)</div>
             </div>`;
     });
 }
@@ -389,21 +376,47 @@ function loadFavorite(id) {
         document.getElementById('s-rate').value = f.rate;
         document.getElementById('s-dur').value = f.dur;
         document.getElementById('s-extra').value = f.extra;
-        run();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.getElementById('s-income').value = f.inc;
+        run(); window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }
 
 function deleteFavorite(id) {
     let favs = JSON.parse(localStorage.getItem('financeFavs')) || [];
-    favs = favs.filter(x => x.id !== id);
-    localStorage.setItem('financeFavs', JSON.stringify(favs));
+    localStorage.setItem('financeFavs', JSON.stringify(favs.filter(x => x.id !== id)));
     renderFavorites();
 }
 
-function compare() { /* ...inchangé... */ }
-function calcCap() { /* ...inchangé... */ }
-async function shareLink() { /* ...inchangé (partage natif)... */ }
+function compare() {
+    const calc = (p, rate, dur) => {
+        const r = (rate/100)/12;
+        if (dur <= 0) return {m:0, total:0};
+        const m = r === 0 ? p/dur : (p * r) / (1 - Math.pow(1 + r, -dur));
+        return { m, total: m * dur };
+    };
+    const r1 = calc(parseFloat(document.getElementById('c1-cap').value), parseFloat(document.getElementById('c1-rate').value), parseInt(document.getElementById('c1-dur').value));
+    const r2 = calc(parseFloat(document.getElementById('c2-cap').value), parseFloat(document.getElementById('c2-rate').value), parseInt(document.getElementById('c2-dur').value));
+    document.getElementById('c1-res').innerText = `Total: ${Math.round(r1.total)}€ (${Math.round(r1.m)}€/m)`;
+    document.getElementById('c2-res').innerText = `Total: ${Math.round(r2.total)}€ (${Math.round(r2.m)}€/m)`;
+    document.getElementById('compare-winner').innerText = r1.total < r2.total ? "L'Option A est moins chère" : "L'Option B est moins chère";
+}
+
+function calcCap() {
+    const m = parseFloat(document.getElementById('cap-m').value) || 0;
+    const r = (parseFloat(document.getElementById('cap-r').value) / 100) / 12;
+    const n = (parseFloat(document.getElementById('cap-y').value) || 0) * 12;
+    const p = r === 0 ? m * n : m * (1 - Math.pow(1 + r, -n)) / r;
+    document.getElementById('cap-res').innerText = Math.round(p).toLocaleString() + " €";
+}
+
+async function shareLink() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('cap', document.getElementById('s-cap').value);
+    url.searchParams.set('rate', document.getElementById('s-rate').value);
+    url.searchParams.set('dur', document.getElementById('s-dur').value);
+    if (navigator.share) { await navigator.share({ title: 'Simulation Finance', text: 'Regarde ma simulation de prêt', url: url.toString() }); } 
+    else { await navigator.clipboard.writeText(url.toString()); alert("Lien copié !"); }
+}
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => console.log(err)); });
