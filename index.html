@@ -142,8 +142,7 @@
     </div>
 </div>
 
-<script>
-let chartS;
+    <script>let chartS;
 
 function switchView(viewId, el) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -211,6 +210,9 @@ function run() {
     else if (ratio < 33) { gBar.style.background = "var(--warning)"; gZone.className="info-card warning-bg"; document.getElementById('debt-msg').innerText="Vigilance (limite 33%)."; }
     else { gBar.style.background = "var(--danger)"; gZone.className="info-card danger-bg"; document.getElementById('debt-msg').innerText="Alerte : endettement trop élevé !"; }
 
+    // Checklist de Vigilance (LA LIGNE AJOUTÉE ICI)
+    updateVigilance(P, r_ann * 100, n_new, ratio, total_int, extra * n_new);
+
     // Boost Notif
     if (boost > 0) {
         document.getElementById('boost-notif').innerText = `🚀 Gain : -${Math.round(n_base - n_new)} mois de crédit !`;
@@ -218,6 +220,26 @@ function run() {
 
     updateChart(P, total_int, extra * n_new);
     localStorage.setItem('financeProSave', JSON.stringify({cap: P, rate: r_ann*100, dur: n_base, inc: income}));
+}
+
+function updateVigilance(P, r_ann_pct, n, ratio, int, totalFees) {
+    const list = document.getElementById('vigilance-list');
+    if(!list) return;
+    list.innerHTML = "";
+    let conseils = [];
+
+    if (r_ann_pct > 5) conseils.push("❌ <b>Taux élevé :</b> Ton taux dépasse 5%. C'est cher.");
+    else conseils.push("✅ <b>Taux correct :</b> Ton taux est raisonnable.");
+
+    if (n > 60) conseils.push("⚠️ <b>Durée longue :</b> Tu vas payer beaucoup d'intérêts sur la durée.");
+    if (ratio > 33) conseils.push("🚨 <b>Danger budget :</b> Tu dépasses les 33% d'endettement !");
+    if (totalFees > int) conseils.push("🧐 <b>Frais élevés :</b> L'assurance/entretien coûte plus cher que le crédit.");
+
+    conseils.forEach(txt => {
+        let li = document.createElement('li');
+        li.innerHTML = txt;
+        list.appendChild(li);
+    });
 }
 
 function updateChart(cap, int, fees) {
@@ -264,7 +286,7 @@ function shareLink() {
     url.searchParams.set('dur', document.getElementById('s-dur').value);
     navigator.clipboard.writeText(url.toString());
     alert("Lien de partage copié ! 🔗");
-}
-</script>
+}</script>
+
 </body>
 </html>
