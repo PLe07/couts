@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash vs Crédit - Le Comparateur</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 20px; line-height: 1.6; background: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: bold; }
+        .good { background: #d4edda; color: #155724; }
+        .bad { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>💸 Cash ou 4x sans frais ?</h2>
+    
+    <label>Prix de l'achat (€)</label>
+    <input type="number" id="price" placeholder="Ex: 1200" oninput="calculate()">
+
+    <label>Taux de ton épargne annuel (%)</label>
+    <input type="number" id="savingsRate" value="3" oninput="calculate()">
+
+    <label>Nombre de mensualités</label>
+    <input type="number" id="months" value="4" oninput="calculate()">
+
+    <label>Frais totaux du crédit (€)</label>
+    <input type="number" id="fees" value="0" placeholder="0 si vraiment gratuit" oninput="calculate()">
+
+    <div id="result" class="result">Entrez un montant pour comparer...</div>
+</div>
+
+<script>
+function calculate() {
+    const P = parseFloat(document.getElementById('price').value);
+    const r = parseFloat(document.getElementById('savingsRate').value) / 100;
+    const n = parseInt(document.getElementById('months').value);
+    const fees = parseFloat(document.getElementById('fees').value) || 0;
+
+    if (!P || P <= 0) return;
+
+    // 1. Manque à gagner si on paye Cash (ce que l'argent ne rapportera pas sur le livret)
+    // Approximation simple : Intérêts = P * (r * (n/12)) / 2 (car le capital diminue chaque mois en crédit)
+    const earningsLost = (P * r * (n / 12)) / 2;
+
+    // 2. Coût réel du crédit
+    const creditCost = fees;
+
+    const diff = earningsLost - creditCost;
+
+    let resDiv = document.getElementById('result');
+    if (diff > 0) {
+        resDiv.className = "result good";
+        resDiv.innerHTML = `✅ Garde ton argent ! <br> En payant en ${n} fois, ton argent placé te rapporte environ ${diff.toFixed(2)}€ de plus que les frais du crédit.`;
+    } else {
+        resDiv.className = "result bad";
+        resDiv.innerHTML = `❌ Paye Cash ! <br> Le crédit te coûte ${Math.abs(diff).toFixed(2)}€ de plus (frais inclus) que ce que ton épargne te rapporterait.`;
+    }
+}
+</script>
+</body>
+</html>
