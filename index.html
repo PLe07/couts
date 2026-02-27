@@ -3,63 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cash vs Crédit - Le Comparateur</title>
+    <title>Simulateur de Crédit Expert</title>
     <style>
-        body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 20px; line-height: 1.6; background: #f4f4f9; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .result { margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: bold; }
-        .good { background: #d4edda; color: #155724; }
-        .bad { background: #f8d7da; color: #721c24; }
+        body { font-family: 'Segoe UI', sans-serif; background: #eceff1; color: #333; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
+        input { width: 100%; padding: 12px; border: 2px solid #dfe6e9; border-radius: 8px; box-sizing: border-box; transition: 0.3s; }
+        input:focus { border-color: #3498db; outline: none; }
+        .results-panel { margin-top: 30px; padding: 20px; border-radius: 10px; background: #f8f9fa; display: flex; justify-content: space-around; text-align: center; }
+        .stat { flex: 1; }
+        .stat-value { display: block; font-size: 1.5em; font-weight: bold; color: #2980b9; }
+        .stat-label { font-size: 0.8em; color: #7f8c8d; text-transform: uppercase; }
+        .summary { margin-top: 20px; padding: 15px; border-left: 5px solid #3498db; background: #e1f5fe; font-style: italic; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>💸 Cash ou 4x sans frais ?</h2>
+<div class="container">
+    <h1>🏦 Simulateur de Prêt Complet</h1>
     
-    <label>Prix de l'achat (€)</label>
-    <input type="number" id="price" placeholder="Ex: 1200" oninput="calculate()">
+    <div class="grid">
+        <div>
+            <label>Montant de l'emprunt (€)</label>
+            <input type="number" id="capital" value="10000" oninput="update()">
+        </div>
+        <div>
+            <label>Taux d'intérêt annuel (%)</label>
+            <input type="number" id="rate" value="4.5" step="0.1" oninput="update()">
+        </div>
+        <div>
+            <label>Durée du prêt (mois)</label>
+            <input type="number" id="duration" value="48" oninput="update()">
+        </div>
+        <div>
+            <label>Frais de dossier / Assurance (€)</label>
+            <input type="number" id="extra" value="0" oninput="update()">
+        </div>
+    </div>
 
-    <label>Taux de ton épargne annuel (%)</label>
-    <input type="number" id="savingsRate" value="3" oninput="calculate()">
+    <div class="results-panel">
+        <div class="stat">
+            <span class="stat-label">Mensualité</span>
+            <span class="stat-value" id="monthly-out">0 €</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Coût Total Intérêts</span>
+            <span class="stat-value" id="interest-out" style="color: #e74c3c;">0 €</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Remboursement Total</span>
+            <span class="stat-value" id="total-out">0 €</span>
+        </div>
+    </div>
 
-    <label>Nombre de mensualités</label>
-    <input type="number" id="months" value="4" oninput="calculate()">
-
-    <label>Frais totaux du crédit (€)</label>
-    <input type="number" id="fees" value="0" placeholder="0 si vraiment gratuit" oninput="calculate()">
-
-    <div id="result" class="result">Entrez un montant pour comparer...</div>
+    <div id="summary-text" class="summary">
+        Modifiez les valeurs pour voir l'impact sur votre budget.
+    </div>
 </div>
 
 <script>
-function calculate() {
-    const P = parseFloat(document.getElementById('price').value);
-    const r = parseFloat(document.getElementById('savingsRate').value) / 100;
-    const n = parseInt(document.getElementById('months').value);
-    const fees = parseFloat(document.getElementById('fees').value) || 0;
+function update() {
+    const P = parseFloat(document.getElementById('capital').value);
+    const annualRate = parseFloat(document.getElementById('rate').value) / 100;
+    const n = parseInt(document.getElementById('duration').value);
+    const extra = parseFloat(document.getElementById('extra').value) || 0;
 
-    if (!P || P <= 0) return;
+    if (!P || P <= 0 || n <= 0) return;
 
-    // 1. Manque à gagner si on paye Cash (ce que l'argent ne rapportera pas sur le livret)
-    // Approximation simple : Intérêts = P * (r * (n/12)) / 2 (car le capital diminue chaque mois en crédit)
-    const earningsLost = (P * r * (n / 12)) / 2;
+    // Taux mensuel
+    const r = annualRate / 12;
 
-    // 2. Coût réel du crédit
-    const creditCost = fees;
-
-    const diff = earningsLost - creditCost;
-
-    let resDiv = document.getElementById('result');
-    if (diff > 0) {
-        resDiv.className = "result good";
-        resDiv.innerHTML = `✅ Garde ton argent ! <br> En payant en ${n} fois, ton argent placé te rapporte environ ${diff.toFixed(2)}€ de plus que les frais du crédit.`;
+    let monthly;
+    if (r === 0) {
+        monthly = P / n;
     } else {
-        resDiv.className = "result bad";
-        resDiv.innerHTML = `❌ Paye Cash ! <br> Le crédit te coûte ${Math.abs(diff).toFixed(2)}€ de plus (frais inclus) que ce que ton épargne te rapporterait.`;
+        // Formule de calcul de mensualité
+        monthly = (P * r) / (1 - Math.pow(1 + r, -n));
     }
+
+    const totalRepaid = (monthly * n) + extra;
+    const totalInterest = totalRepaid - P;
+
+    document.getElementById('monthly-out').innerText = monthly.toFixed(2) + " €";
+    document.getElementById('interest-out').innerText = totalInterest.toFixed(2) + " €";
+    document.getElementById('total-out').innerText = totalRepaid.toFixed(2) + " €";
+
+    document.getElementById('summary-text').innerHTML = 
+        `Pour emprunter <b>${P}€</b>, vous allez payer <b>${n}</b> mensualités de <b>${monthly.toFixed(2)}€</b>. <br>` +
+        `Au final, votre achat vous aura coûté <b>${totalRepaid.toFixed(2)}€</b> (prix initial + intérêts et frais).`;
 }
+
+// Lancement initial
+update();
 </script>
 </body>
 </html>
