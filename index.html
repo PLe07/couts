@@ -3,169 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculateur de Prêt Pro - Graphique & Tableau</title>
+    <title>Finance Master - Comparateur & Capacité</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; color: #1a1a1a; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
-        .header { text-align: center; margin-bottom: 30px; }
-        .grid-input { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; color: #444; }
+        :root { --primary: #2563eb; --secondary: #64748b; --danger: #ef4444; --success: #22c55e; }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; padding: 20px; color: #1e293b; }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         
-        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; }
-        @media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; }
+        .tab { padding: 10px 20px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; color: var(--secondary); }
+        .tab.active { border-color: var(--primary); color: var(--primary); }
+        .view { display: none; }
+        .view.active { display: block; }
 
-        .stats { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .stat-item { margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
-        .stat-item:last-child { border: none; }
-        .stat-label { font-size: 13px; color: #64748b; text-transform: uppercase; }
-        .stat-value { font-size: 22px; font-weight: bold; color: #0f172a; display: block; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .input-group { background: #f8fafc; padding: 20px; border-radius: 12px; }
+        label { display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; }
+        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 6px; }
 
-        .table-container { margin-top: 40px; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th { background: #334155; color: white; padding: 12px; text-align: left; }
+        .card-result { background: #1e293b; color: white; padding: 20px; border-radius: 12px; text-align: center; }
+        .big-val { font-size: 2rem; font-weight: 800; display: block; color: #38bdf8; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+        th { background: #f1f5f9; padding: 10px; text-align: left; }
         td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
-        tr:nth-child(even) { background: #f8fafc; }
 
-        canvas { max-width: 100%; }
+        .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .inflation-info { margin-top: 15px; padding: 10px; background: #f0fdf4; border-radius: 8px; font-size: 0.85rem; color: #166534; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1>📊 Simulateur de Crédit Avancé</h1>
-        <p>Calculez l'impact réel de vos emprunts</p>
+    <div class="tabs">
+        <div class="tab active" onclick="switchView('simple')">Simulation Solo</div>
+        <div class="tab" onclick="switchView('compare')">Comparateur (A vs B)</div>
+        <div class="tab" onclick="switchView('capacity')">Capacité d'Achat</div>
     </div>
 
-    <div class="grid-input">
-        <div>
-            <label>Capital emprunté (€)</label>
-            <input type="number" id="capital" value="5000" oninput="runSimulation()">
-        </div>
-        <div>
-            <label>Taux annuel (%)</label>
-            <input type="number" id="rate" value="4.5" step="0.1" oninput="runSimulation()">
-        </div>
-        <div>
-            <label>Durée (mois)</label>
-            <input type="number" id="duration" value="24" oninput="runSimulation()">
-        </div>
-    </div>
-
-    <div class="main-content">
-        <div class="stats">
-            <div class="stat-item">
-                <span class="stat-label">Mensualité</span>
-                <span class="stat-value" id="res-monthly">--</span>
+    <div id="view-simple" class="view active">
+        <div class="grid">
+            <div class="input-group">
+                <label>Montant (€)</label>
+                <input type="number" id="s-cap" value="10000" oninput="calcSimple()">
+                <label>Taux annuel (%)</label>
+                <input type="number" id="s-rate" value="4" oninput="calcSimple()">
+                <label>Durée (mois)</label>
+                <input type="number" id="s-dur" value="36" oninput="calcSimple()">
+                <label>Inflation estimée annuel (%)</label>
+                <input type="number" id="s-inf" value="2" oninput="calcSimple()">
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Coût des intérêts</span>
-                <span class="stat-value" id="res-interests" style="color: #ef4444;">--</span>
+            <div>
+                <div class="card-result">
+                    <span class="stat-label">Mensualité</span>
+                    <span class="big-val" id="s-res-m">0 €</span>
+                    <hr style="opacity: 0.2; margin: 15px 0;">
+                    <p id="s-res-total">Coût total : 0 €</p>
+                </div>
+                <div id="inflation-msg" class="inflation-info"></div>
+                <canvas id="chartSimple" style="margin-top:20px"></canvas>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Total remboursé</span>
-                <span class="stat-value" id="res-total">--</span>
-            </div>
-        </div>
-        <div>
-            <canvas id="myChart"></canvas>
         </div>
     </div>
 
-    <div class="table-container">
-        <h3>📅 Tableau d'amortissement</h3>
-        <table id="amortization-table">
-            <thead>
-                <tr>
-                    <th>Mois</th>
-                    <th>Mensualité</th>
-                    <th>Intérêts</th>
-                    <th>Capital remboursé</th>
-                    <th>Restant dû</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    <div id="view-compare" class="view">
+        <div class="comparison-grid">
+            <div class="input-group">
+                <h3>Option A</h3>
+                <input type="number" id="c1-cap" value="5000" oninput="compare()">
+                <input type="number" id="c1-rate" value="5" oninput="compare()">
+                <input type="number" id="c1-dur" value="12" oninput="compare()">
+                <div id="c1-res" class="stat-value">--</div>
+            </div>
+            <div class="input-group" style="border-left: 4px solid var(--primary)">
+                <h3>Option B</h3>
+                <input type="number" id="c2-cap" value="5000" oninput="compare()">
+                <input type="number" id="c2-rate" value="0" oninput="compare()">
+                <input type="number" id="c2-dur" value="4" oninput="compare()">
+                <div id="c2-res" class="stat-value">--</div>
+            </div>
+        </div>
+        <div id="compare-winner" class="card-result" style="margin-top: 20px; background: var(--primary)">Choisir une option</div>
+    </div>
+
+    <div id="view-capacity" class="view">
+        <div class="grid">
+            <div class="input-group">
+                <label>Mensualité Max souhaitée (€)</label>
+                <input type="number" id="cap-m" value="300" oninput="calcCap()">
+                <label>Taux proposé par la banque (%)</label>
+                <input type="number" id="cap-r" value="4.2" oninput="calcCap()">
+                <label>Pendant combien d'années ?</label>
+                <input type="number" id="cap-y" value="5" oninput="calcCap()">
+            </div>
+            <div class="card-result" style="background: var(--success)">
+                <span class="stat-label">Tu peux acheter un objet de :</span>
+                <span class="big-val" id="cap-res" style="color: white">0 €</span>
+                <p style="font-size: 0.8rem; margin-top: 10px">Hors apport personnel</p>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-let myChart;
+let chartS;
 
-function runSimulation() {
-    const P = parseFloat(document.getElementById('capital').value);
-    const annualRate = parseFloat(document.getElementById('rate').value) / 100;
-    const n = parseInt(document.getElementById('duration').value);
-
-    if (!P || P <= 0 || n <= 0) return;
-
-    const r = annualRate / 12;
-    const monthly = (r === 0) ? P / n : (P * r) / (1 - Math.pow(1 + r, -n));
-    const totalRepaid = monthly * n;
-    const totalInterest = totalRepaid - P;
-
-    // Mise à jour des chiffres
-    document.getElementById('res-monthly').innerText = monthly.toFixed(2) + " €";
-    document.getElementById('res-interests').innerText = totalInterest.toFixed(2) + " €";
-    document.getElementById('res-total').innerText = totalRepaid.toFixed(2) + " €";
-
-    updateChart(P, totalInterest);
-    updateTable(P, r, monthly, n);
+function switchView(view) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('view-' + view).classList.add('active');
+    event.currentTarget.classList.add('active');
 }
 
-function updateChart(capital, interests) {
-    const ctx = document.getElementById('myChart').getContext('2d');
-    
-    if (myChart) myChart.destroy();
+function calcSimple() {
+    const P = parseFloat(document.getElementById('s-cap').value) || 0;
+    const r = (parseFloat(document.getElementById('s-rate').value) / 100) / 12;
+    const n = parseInt(document.getElementById('s-dur').value) || 0;
+    const inf = (parseFloat(document.getElementById('s-inf').value) / 100) / 12;
 
-    myChart = new Chart(ctx, {
-        type: 'doughnut',
+    if (n <= 0) return;
+
+    const m = r === 0 ? P/n : (P * r) / (1 - Math.pow(1 + r, -n));
+    const total = m * n;
+    
+    // Calcul inflation (valeur réelle du dernier remboursement)
+    const realValueLast = m / Math.pow(1 + inf, n);
+    
+    document.getElementById('s-res-m').innerText = m.toFixed(2) + " €";
+    document.getElementById('s-res-total').innerText = "Coût total : " + total.toFixed(2) + " € (" + (total - P).toFixed(2) + "€ d'intérêts)";
+    document.getElementById('inflation-msg').innerText = `💡 Grâce à l'inflation, votre dernière mensualité de ${m.toFixed(2)}€ ne pèsera que l'équivalent de ${realValueLast.toFixed(2)}€ d'aujourd'hui.`;
+
+    updateChart(P, total - P);
+}
+
+function compare() {
+    const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+    const calc = (p, rate, dur) => {
+        const r = (rate/100)/12;
+        const m = r === 0 ? p/dur : (p * r) / (1 - Math.pow(1 + r, -dur));
+        return { m, total: m * dur };
+    };
+
+    const res1 = calc(getVal('c1-cap'), getVal('c1-rate'), getVal('c1-dur'));
+    const res2 = calc(getVal('c2-cap'), getVal('c2-rate'), getVal('c2-dur'));
+
+    document.getElementById('c1-res').innerHTML = `Total: <b>${res1.total.toFixed(2)}€</b><br><small>${res1.m.toFixed(2)}€/mois</small>`;
+    document.getElementById('c2-res').innerHTML = `Total: <b>${res2.total.toFixed(2)}€</b><br><small>${res2.m.toFixed(2)}€/mois</small>`;
+
+    const diff = Math.abs(res1.total - res2.total).toFixed(2);
+    const winner = res1.total < res2.total ? "Option A" : "Option B";
+    document.getElementById('compare-winner').innerText = `L'${winner} est la moins chère (Économie de ${diff}€)`;
+}
+
+function calcCap() {
+    const m = parseFloat(document.getElementById('cap-m').value) || 0;
+    const r = (parseFloat(document.getElementById('cap-r').value) / 100) / 12;
+    const n = (parseFloat(document.getElementById('cap-y').value) || 0) * 12;
+
+    const p = r === 0 ? m * n : m * (1 - Math.pow(1 + r, -n)) / r;
+    document.getElementById('cap-res').innerText = Math.floor(p).toLocaleString() + " €";
+}
+
+function updateChart(cap, int) {
+    const ctx = document.getElementById('chartSimple').getContext('2d');
+    if (chartS) chartS.destroy();
+    chartS = new Chart(ctx, {
+        type: 'pie',
         data: {
-            labels: ['Capital (Prix de base)', 'Intérêts (Coût du prêt)'],
-            datasets: [{
-                data: [capital, interests],
-                backgroundColor: ['#3b82f6', '#ef4444'],
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            plugins: {
-                legend: { position: 'bottom' }
-            }
+            labels: ['Prix Objet', 'Intérêts'],
+            datasets: [{ data: [cap, int], backgroundColor: ['#2563eb', '#ef4444'] }]
         }
     });
 }
 
-function updateTable(P, r, monthly, n) {
-    const tbody = document.querySelector('#amortization-table tbody');
-    tbody.innerHTML = "";
-    
-    let remaining = P;
-    
-    for (let i = 1; i <= n; i++) {
-        let interestPart = remaining * r;
-        let principalPart = monthly - interestPart;
-        remaining -= principalPart;
-
-        // Sécurité pour éviter les petits chiffres négatifs dus à l'arrondi JS
-        if (remaining < 0) remaining = 0;
-
-        const row = `<tr>
-            <td>${i}</td>
-            <td>${monthly.toFixed(2)} €</td>
-            <td>${interestPart.toFixed(2)} €</td>
-            <td>${principalPart.toFixed(2)} €</td>
-            <td>${remaining.toFixed(2)} €</td>
-        </tr>`;
-        tbody.innerHTML += row;
-    }
-}
-
-// Initialisation
-runSimulation();
+// Init
+calcSimple();
+compare();
+calcCap();
 </script>
-
 </body>
 </html>
