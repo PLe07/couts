@@ -291,6 +291,15 @@ function shareLink() {
     navigator.clipboard.writeText(url.toString());
     alert("Lien de partage copié ! 🔗");
 }</script>
-
+<script>
+  // Enregistrement du Service Worker pour le mode hors-ligne
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker enregistré avec succès.', reg))
+        .catch(err => console.log('Erreur lors de l\'enregistrement du Service Worker.', err));
+    });
+  }
+</script>
 </body>
 </html>
