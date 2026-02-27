@@ -3,194 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Master Pro - Santé & Stratégie</title>
+    <title>Finance Master Pro - Dashboard Complet</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { 
             --primary: #2563eb; --secondary: #64748b; 
             --danger: #ef4444; --success: #22c55e; --warning: #f59e0b;
         }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8fafc; padding: 20px; color: #1e293b; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; padding: 20px; color: #1e293b; }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         
-        .grid-main { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-        .panel { background: #ffffff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 15px; }
-        .section-title { border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; }
+        .tab { padding: 12px 24px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; color: var(--secondary); transition: 0.3s; }
+        .tab.active { border-color: var(--primary); color: var(--primary); background: #f8fafc; }
         
+        .view { display: none; }
+        .view.active { display: block; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .input-group { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
         label { display: block; margin-bottom: 5px; font-size: 0.85rem; font-weight: 600; color: #475569; }
         input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
-        
-        .result-box { background: #1e293b; color: white; padding: 25px; border-radius: 12px; text-align: center; position: sticky; top: 20px; }
-        .big-val { font-size: 2.5rem; font-weight: 800; color: #38bdf8; line-height: 1; }
-        
-        /* Jauge d'endettement */
-        .gauge-container { height: 12px; background: #e2e8f0; border-radius: 10px; margin: 15px 0; overflow: hidden; }
-        .gauge-bar { height: 100%; width: 0%; transition: 0.5s ease; }
-        
-        .info-card { font-size: 0.9rem; padding: 12px; border-radius: 8px; margin-top: 10px; }
-        .success-bg { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-        .warning-bg { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
-        .danger-bg { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 
-        @media (max-width: 900px) { .grid-main { grid-template-columns: 1fr; } }
+        .card-result { background: #1e293b; color: white; padding: 25px; border-radius: 15px; text-align: center; }
+        .big-val { font-size: 2.5rem; font-weight: 800; display: block; color: #38bdf8; }
+
+        /* Jauge */
+        .gauge-container { height: 10px; background: #e2e8f0; border-radius: 10px; margin: 10px 0; overflow: hidden; }
+        .gauge-bar { height: 100%; width: 0%; transition: 0.5s ease; }
+
+        .info-card { font-size: 0.85rem; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid transparent; }
+        .success-bg { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+        .warning-bg { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+        .danger-bg { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-top: 10px; }
+        .btn-share { background: #38bdf8; color: #1e293b; }
+        .btn-share:hover { background: #0ea5e9; }
+
+        @media (max-width: 850px) { .grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="margin:0;">🏦 Finance Master Pro</h1>
-        <p style="color: var(--secondary);">Analyse de santé financière & coût réel</p>
+    <div class="tabs">
+        <div class="tab active" onclick="switchView('simple', this)">Simulation Expert</div>
+        <div class="tab" onclick="switchView('compare', this)">Comparateur A/B</div>
+        <div class="tab" onclick="switchView('capacity', this)">Capacité d'Achat</div>
     </div>
 
-    <div class="grid-main">
-        <div class="inputs">
+    <div id="view-simple" class="view active">
+        <div class="grid">
+            <div class="input-group">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div><label>Capital (€)</label><input type="number" id="s-cap" value="15000" oninput="run()"></div>
+                    <div><label>Taux (%)</label><input type="number" id="s-rate" value="4.5" step="0.1" oninput="run()"></div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div><label>Durée (mois)</label><input type="number" id="s-dur" value="48" oninput="run()"></div>
+                    <div><label>Assurance (€/m)</label><input type="number" id="s-extra" value="30" oninput="run()"></div>
+                </div>
+                <hr style="opacity:0.1; margin: 15px 0;">
+                <label>Tes revenus nets (€/mois)</label>
+                <input type="number" id="s-income" value="2200" oninput="run()">
+                <label>Boost remboursement (€/mois)</label>
+                <input type="number" id="s-boost" value="0" placeholder="+ 50€ ?" oninput="run()">
+                <label>Inflation estimée (%)</label>
+                <input type="number" id="s-inf" value="2" oninput="run()">
+                
+                <button onclick="shareLink()" class="btn btn-share">🔗 Copier le lien de partage</button>
+            </div>
             
-            <div class="panel">
-                <div class="section-title">📦 Le Prêt & Vrai Coût</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div>
-                        <label>Montant (€)</label>
-                        <input type="number" id="p-cap" value="15000" oninput="run()">
-                    </div>
-                    <div>
-                        <label>Taux annuel (%)</label>
-                        <input type="number" id="p-rate" value="4.5" step="0.1" oninput="run()">
-                    </div>
+            <div>
+                <div class="card-result">
+                    <span style="font-size:0.9rem; opacity:0.8;">MENSUALITÉ TOTALE</span>
+                    <span class="big-val" id="res-m-total">0 €</span>
+                    <p id="res-detail" style="font-size:0.85rem; margin-top:5px; opacity:0.7;"></p>
+                    <div id="boost-notif" style="color:var(--success); font-weight:bold; font-size:0.85rem; margin-top:5px;"></div>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div>
-                        <label>Durée (mois)</label>
-                        <input type="number" id="p-dur" value="48" oninput="run()">
-                    </div>
-                    <div>
-                        <label>Assurance/Frais (€/mois)</label>
-                        <input type="number" id="p-extra" value="40" oninput="run()">
-                    </div>
+                
+                <div class="info-card" id="debt-zone">
+                    <div id="gauge-label" style="font-weight:bold;">Taux d'endettement : 0%</div>
+                    <div class="gauge-container"><div id="gauge-bar" class="gauge-bar"></div></div>
+                    <div id="debt-msg"></div>
+                </div>
+
+                <div id="inf-msg" class="info-card success-bg" style="margin-top:10px;"></div>
+
+                <div style="max-height: 220px; margin-top: 15px;">
+                    <canvas id="chartSimple"></canvas>
                 </div>
             </div>
-
-            <div class="panel" style="margin-top:20px;">
-                <div class="section-title">🥗 Santé Financière</div>
-                <label>Tes revenus mensuels nets (€)</label>
-                <input type="number" id="user-income" value="2000" oninput="run()">
-                <div id="gauge-label" style="font-weight:bold; font-size:0.9rem;">Taux d'endettement : 0%</div>
-                <div class="gauge-container">
-                    <div id="gauge-bar" class="gauge-bar"></div>
-                </div>
-                <div id="debt-msg" class="info-card"></div>
-            </div>
-
-            <div class="panel" style="margin-top:20px;">
-                <div class="section-title">⚡ Remboursement Anticipé</div>
-                <label>Mensualité augmentée de (€)</label>
-                <input type="number" id="p-boost" value="0" placeholder="Ex: 50" oninput="run()">
-                <div id="boost-msg" style="font-size: 0.85rem; color: var(--success); font-weight: 600;"></div>
-            </div>
-
         </div>
+    </div>
 
-        <div class="results">
-            <div class="result-box">
-                <span style="font-size: 0.9rem; opacity: 0.8; text-transform: uppercase;">Mensualité Totale</span>
-                <span class="big-val" id="res-m-total">0 €</span>
-                <p id="res-detail" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.7;"></p>
-                <hr style="opacity:0.1; margin: 20px 0;">
-                <div style="display:grid; grid-template-columns: 1fr 1fr;">
-                    <div>
-                        <small>Coût total Intérêts</small><br>
-                        <strong id="res-int">0 €</strong>
-                    </div>
-                    <div>
-                        <small>Coût Vrai (avec frais)</small><br>
-                        <strong id="res-vrai">0 €</strong>
-                    </div>
-                </div>
+    <div id="view-compare" class="view">
+        <div class="grid">
+            <div class="input-group">
+                <h3>Option A</h3>
+                <input type="number" id="c1-cap" value="5000" oninput="compare()">
+                <input type="number" id="c1-rate" value="5" oninput="compare()">
+                <input type="number" id="c1-dur" value="12" oninput="compare()">
+                <div id="c1-res" style="color:var(--primary); font-weight:bold;">--</div>
             </div>
-            
-            <div style="margin-top: 30px; height: 300px;">
-                <canvas id="mainChart"></canvas>
+            <div class="input-group" style="border-left: 5px solid var(--primary)">
+                <h3>Option B</h3>
+                <input type="number" id="c2-cap" value="5000" oninput="compare()">
+                <input type="number" id="c2-rate" value="0" oninput="compare()">
+                <input type="number" id="c2-dur" value="4" oninput="compare()">
+                <div id="c2-res" style="color:var(--primary); font-weight:bold;">--</div>
+            </div>
+        </div>
+        <div id="compare-winner" class="card-result" style="margin-top: 20px; background: var(--primary)">Comparez deux options</div>
+    </div>
+
+    <div id="view-capacity" class="view">
+        <div class="grid">
+            <div class="input-group">
+                <label>Mensualité Max (€/mois)</label>
+                <input type="number" id="cap-m" value="300" oninput="calcCap()">
+                <label>Taux (%)</label>
+                <input type="number" id="cap-r" value="4.5" oninput="calcCap()">
+                <label>Durée (années)</label>
+                <input type="number" id="cap-y" value="5" oninput="calcCap()">
+            </div>
+            <div class="card-result" style="background: var(--success)">
+                <span class="stat-label">Capacité d'emprunt estimée :</span>
+                <span class="big-val" id="cap-res" style="color: white">0 €</span>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-let chart;
+let chartS;
+
+function switchView(viewId, el) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('view-' + viewId).classList.add('active');
+    el.classList.add('active');
+}
+
+window.onload = () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('cap')) {
+        document.getElementById('s-cap').value = params.get('cap');
+        document.getElementById('s-rate').value = params.get('rate');
+        document.getElementById('s-dur').value = params.get('dur');
+    } else {
+        const saved = JSON.parse(localStorage.getItem('financeProSave'));
+        if (saved) {
+            document.getElementById('s-cap').value = saved.cap;
+            document.getElementById('s-rate').value = saved.rate;
+            document.getElementById('s-dur').value = saved.dur;
+            document.getElementById('s-income').value = saved.inc || 2200;
+        }
+    }
+    run(); compare(); calcCap();
+};
 
 function run() {
-    // Inputs
-    const P = parseFloat(document.getElementById('p-cap').value) || 0;
-    const annualRate = parseFloat(document.getElementById('p-rate').value) / 100;
-    const n_base = parseInt(document.getElementById('p-dur').value) || 0;
-    const extra = parseFloat(document.getElementById('p-extra').value) || 0;
-    const income = parseFloat(document.getElementById('user-income').value) || 0;
-    const boost = parseFloat(document.getElementById('p-boost').value) || 0;
+    const P = parseFloat(document.getElementById('s-cap').value) || 0;
+    const r_ann = parseFloat(document.getElementById('s-rate').value) / 100;
+    const n_base = parseInt(document.getElementById('s-dur').value) || 0;
+    const extra = parseFloat(document.getElementById('s-extra').value) || 0;
+    const income = parseFloat(document.getElementById('s-income').value) || 0;
+    const boost = parseFloat(document.getElementById('s-boost').value) || 0;
+    const inf = (parseFloat(document.getElementById('s-inf').value) / 100) / 12;
 
-    if (P <= 0 || n_base <= 0) return;
+    if (n_base <= 0) return;
 
-    // Calcul mensualité de base (hors assurance et boost)
-    const r = annualRate / 12;
+    const r = r_ann / 12;
     const m_base = r === 0 ? P / n_base : (P * r) / (1 - Math.pow(1 + r, -n_base));
     
-    // Calcul de la nouvelle durée si boost
     let m_boosted = m_base + boost;
     let n_new = n_base;
-    let total_int_boosted = 0;
-
     if (boost > 0 && r > 0) {
-        n_new = -Math.log(1 - (P * r) / m_boosted) / Math.log(1 + r);
-        total_int_boosted = (m_boosted * n_new) - P;
-    } else {
-        total_int_boosted = (m_base * n_base) - P;
+        let val = 1 - (P * r) / m_boosted;
+        if (val > 0) n_new = -Math.log(val) / Math.log(1 + r);
     }
 
     const m_total = m_boosted + extra;
-    const total_cost_vrai = (m_total * n_new);
+    const total_int = (m_boosted * n_new) - P;
+    const realValLast = m_total / Math.pow(1 + inf, n_new);
 
-    // 1. Affichage des prix
+    // Affichage
     document.getElementById('res-m-total').innerText = Math.round(m_total) + " €";
-    document.getElementById('res-int').innerText = Math.round(total_int_boosted) + " €";
-    document.getElementById('res-vrai').innerText = Math.round(total_cost_vrai) + " €";
-    document.getElementById('res-detail').innerText = `Dont prêt: ${Math.round(m_boosted)}€ + Frais: ${extra}€`;
+    document.getElementById('res-detail').innerText = `${Math.round(m_boosted)}€ (prêt) + ${extra}€ (frais)`;
+    document.getElementById('inf-msg').innerText = `💡 En tenant compte de l'inflation, votre mensualité finale vaudra environ ${realValLast.toFixed(2)}€ actuels.`;
 
-    // 2. Santé Financière (Ratio d'endettement)
+    // Santé Financière
     const ratio = income > 0 ? (m_total / income) * 100 : 0;
     const gBar = document.getElementById('gauge-bar');
-    const gMsg = document.getElementById('debt-msg');
+    const gZone = document.getElementById('debt-zone');
     document.getElementById('gauge-label').innerText = `Taux d'endettement : ${ratio.toFixed(1)}%`;
-    
     gBar.style.width = Math.min(ratio, 100) + "%";
-    if (ratio < 20) { gBar.style.background = var(--success); gMsg.className="info-card success-bg"; gMsg.innerText="✅ Très sain. Ton budget respire."; }
-    else if (ratio < 33) { gBar.style.background = var(--warning); gMsg.className="info-card warning-bg"; gMsg.innerText="⚠️ Attention. Tu approches de la limite bancaire (33%)."; }
-    else { gBar.style.background = var(--danger); gMsg.className="info-card danger-bg"; gMsg.innerText="🚨 Risqué ! Ton endettement est trop élevé pour ton salaire."; }
+    
+    if (ratio < 20) { gBar.style.background = "var(--success)"; gZone.className="info-card success-bg"; document.getElementById('debt-msg').innerText="Budget sain."; }
+    else if (ratio < 33) { gBar.style.background = "var(--warning)"; gZone.className="info-card warning-bg"; document.getElementById('debt-msg').innerText="Vigilance (limite 33%)."; }
+    else { gBar.style.background = "var(--danger)"; gZone.className="info-card danger-bg"; document.getElementById('debt-msg').innerText="Alerte : endettement trop élevé !"; }
 
-    // 3. Remboursement Anticipé
+    // Boost Notif
     if (boost > 0) {
-        const gain_mois = Math.round(n_base - n_new);
-        const gain_argent = Math.round((m_base * n_base - P) - total_int_boosted);
-        document.getElementById('boost-msg').innerText = `🚀 Gain : -${gain_mois} mois et ${gain_argent}€ d'intérêts en moins !`;
-    } else {
-        document.getElementById('boost-msg').innerText = "";
-    }
+        document.getElementById('boost-notif').innerText = `🚀 Gain : -${Math.round(n_base - n_new)} mois de crédit !`;
+    } else { document.getElementById('boost-notif').innerText = ""; }
 
-    updateChart(P, total_int_boosted, extra * n_new);
+    updateChart(P, total_int, extra * n_new);
+    localStorage.setItem('financeProSave', JSON.stringify({cap: P, rate: r_ann*100, dur: n_base, inc: income}));
 }
 
 function updateChart(cap, int, fees) {
-    const ctx = document.getElementById('mainChart').getContext('2d');
-    if (chart) chart.destroy();
-    chart = new Chart(ctx, {
-        type: 'pie',
+    const ctx = document.getElementById('chartSimple').getContext('2d');
+    if (chartS) chartS.destroy();
+    chartS = new Chart(ctx, {
+        type: 'doughnut',
         data: {
-            labels: ['Prix Objet', 'Intérêts', 'Assurance/Frais'],
+            labels: ['Capital', 'Intérêts', 'Frais/Assurance'],
             datasets: [{ data: [cap, int, fees], backgroundColor: ['#2563eb', '#ef4444', '#f59e0b'] }]
         },
-        options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
     });
 }
 
-run();
+function compare() {
+    const calc = (p, rate, dur) => {
+        const r = (rate/100)/12;
+        if (dur <= 0) return {m:0, total:0};
+        const m = r === 0 ? p/dur : (p * r) / (1 - Math.pow(1 + r, -dur));
+        return { m, total: m * dur };
+    };
+    const r1 = calc(parseFloat(document.getElementById('c1-cap').value)||0, parseFloat(document.getElementById('c1-rate').value)||0, parseInt(document.getElementById('c1-dur').value)||0);
+    const r2 = calc(parseFloat(document.getElementById('c2-cap').value)||0, parseFloat(document.getElementById('c2-rate').value)||0, parseInt(document.getElementById('c2-dur').value)||0);
+    document.getElementById('c1-res').innerText = `Total: ${r1.total.toFixed(2)}€`;
+    document.getElementById('c2-res').innerText = `Total: ${r2.total.toFixed(2)}€`;
+    const win = r1.total < r2.total ? "A" : "B";
+    document.getElementById('compare-winner').innerText = `L'Option ${win} est la moins chère.`;
+}
+
+function calcCap() {
+    const m = parseFloat(document.getElementById('cap-m').value) || 0;
+    const r = (parseFloat(document.getElementById('cap-r').value) / 100) / 12;
+    const n = (parseFloat(document.getElementById('cap-y').value) || 0) * 12;
+    if (n <= 0) return;
+    const p = r === 0 ? m * n : m * (1 - Math.pow(1 + r, -n)) / r;
+    document.getElementById('cap-res').innerText = Math.floor(p).toLocaleString() + " €";
+}
+
+function shareLink() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('cap', document.getElementById('s-cap').value);
+    url.searchParams.set('rate', document.getElementById('s-rate').value);
+    url.searchParams.set('dur', document.getElementById('s-dur').value);
+    navigator.clipboard.writeText(url.toString());
+    alert("Lien de partage copié ! 🔗");
+}
 </script>
 </body>
 </html>
