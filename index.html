@@ -1,25 +1,47 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2845/2845811.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Master Pro - Dashboard Complet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Finance Master Pro</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2845/2845811.png">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         :root { 
             --primary: #2563eb; --secondary: #64748b; 
             --danger: #ef4444; --success: #22c55e; --warning: #f59e0b;
         }
-        body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; padding: 20px; color: #1e293b; }
-        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         
-        /* Tabs */
-        .tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; }
-        .tab { padding: 12px 24px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; color: var(--secondary); transition: 0.3s; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            font-family: 'Inter', system-ui, sans-serif; 
+            background: #f1f5f9; padding: 15px; margin: 0; color: #1e293b; 
+        }
+        
+        .container { 
+            max-width: 1100px; margin: auto; background: white; 
+            padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+        }
+        
+        /* Onglets Scrollables pour Mobile */
+        .tabs { 
+            display: flex; gap: 5px; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+        
+        .tab { 
+            padding: 12px 18px; cursor: pointer; border-bottom: 3px solid transparent; 
+            font-weight: 600; color: var(--secondary); transition: 0.3s; flex-shrink: 0;
+        }
         .tab.active { border-color: var(--primary); color: var(--primary); background: #f8fafc; }
         
         .view { display: none; }
@@ -27,43 +49,65 @@
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         .input-group { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        
         label { display: block; margin-bottom: 5px; font-size: 0.85rem; font-weight: 600; color: #475569; }
-        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+        input { 
+            width: 100%; padding: 12px; margin-bottom: 15px; 
+            border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; 
+        }
 
         .card-result { background: #1e293b; color: white; padding: 25px; border-radius: 15px; text-align: center; }
-        .big-val { font-size: 2.5rem; font-weight: 800; display: block; color: #38bdf8; }
+        .big-val { font-size: 2.2rem; font-weight: 800; display: block; color: #38bdf8; }
 
-        /* Jauge */
         .gauge-container { height: 10px; background: #e2e8f0; border-radius: 10px; margin: 10px 0; overflow: hidden; }
         .gauge-bar { height: 100%; width: 0%; transition: 0.5s ease; }
 
-        .info-card { font-size: 0.85rem; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid transparent; }
+        .info-card { font-size: 0.85rem; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid transparent; line-height: 1.5; }
         .success-bg { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
         .warning-bg { background: #fffbeb; color: #92400e; border-color: #fde68a; }
         .danger-bg { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
 
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-top: 10px; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-top: 10px; font-size: 1rem; }
         .btn-share { background: #38bdf8; color: #1e293b; }
         .btn-share:hover { background: #0ea5e9; }
 
-        @media (max-width: 850px) { .grid { grid-template-columns: 1fr; } }
+        /* Mode Sombre */
+        @media (prefers-color-scheme: dark) {
+            body { background: #0f172a; color: #f1f5f9; }
+            .container { background: #1e293b; border-color: #334155; }
+            .input-group { background: #334155; border-color: #475569; }
+            input { background: #1e293b; color: white; border-color: #475569; }
+            label, .tab { color: #cbd5e1; }
+            .tab.active { background: #334155; }
+            .tabs { border-color: #334155; }
+            .info-card { background: #1e293b; }
+        }
+
+        /* Optimisation Mobile */
+        @media (max-width: 850px) { 
+            .grid { grid-template-columns: 1fr; gap: 20px; } 
+            body { padding: 0; }
+            .container { border-radius: 0; padding: 15px; box-shadow: none; min-height: 100vh; }
+            .tabs { position: sticky; top: 0; background: inherit; z-index: 100; padding-top: 10px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="tabs">
-        <div class="tab active" onclick="switchView('simple', this)">Simulation Expert</div>
-        <div class="tab" onclick="switchView('compare', this)">Comparateur A/B</div>
-        <div class="tab" onclick="switchView('capacity', this)">Capacité d'Achat</div>
+        <div class="tab active" onclick="switchView('simple', this)">📊 Simulation</div>
+        <div class="tab" onclick="switchView('compare', this)">⚖️ Comparateur</div>
+        <div class="tab" onclick="switchView('capacity', this)">💰 Capacité</div>
     </div>
 
     <div id="view-simple" class="view active">
-        <div id="check-vigilance" class="info-card" style="margin-top: 20px; border: 1px solid #e2e8f0; background: #fff;">
-    <h4 style="margin: 0 0 10px 0; font-size: 0.9rem;">🧐 Checklist de Vigilance</h4>
-    <ul id="vigilance-list" style="margin: 0; padding-left: 20px; font-size: 0.85rem; line-height: 1.6;">
-        </ul>
-</div>
+        
+        <div id="check-vigilance" class="info-card" style="margin-bottom: 20px; border: 1px solid #e2e8f0;">
+            <h4 style="margin: 0 0 10px 0; font-size: 0.9rem;">🧐 Checklist Coach</h4>
+            <ul id="vigilance-list" style="margin: 0; padding-left: 20px; font-size: 0.85rem;"></ul>
+        </div>
+
         <div class="grid">
             <div class="input-group">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -75,33 +119,33 @@
                     <div><label>Assurance (€/m)</label><input type="number" id="s-extra" value="30" oninput="run()"></div>
                 </div>
                 <hr style="opacity:0.1; margin: 15px 0;">
-                <label>Tes revenus nets (€/mois)</label>
+                <label>Revenus nets (€/mois)</label>
                 <input type="number" id="s-income" value="2200" oninput="run()">
-                <label>Boost remboursement (€/mois)</label>
-                <input type="number" id="s-boost" value="0" placeholder="+ 50€ ?" oninput="run()">
+                <label>Boost remboursement (+€/mois)</label>
+                <input type="number" id="s-boost" value="0" placeholder="Ex: 50" oninput="run()">
                 <label>Inflation estimée (%)</label>
                 <input type="number" id="s-inf" value="2" oninput="run()">
                 
-                <button onclick="shareLink()" class="btn btn-share">🔗 Copier le lien de partage</button>
+                <button onclick="shareLink()" class="btn btn-share">🔗 Partager ma simulation</button>
             </div>
             
             <div>
                 <div class="card-result">
-                    <span style="font-size:0.9rem; opacity:0.8;">MENSUALITÉ TOTALE</span>
+                    <span style="font-size:0.9rem; opacity:0.8;">MENSUALITÉ</span>
                     <span class="big-val" id="res-m-total">0 €</span>
                     <p id="res-detail" style="font-size:0.85rem; margin-top:5px; opacity:0.7;"></p>
                     <div id="boost-notif" style="color:var(--success); font-weight:bold; font-size:0.85rem; margin-top:5px;"></div>
                 </div>
                 
                 <div class="info-card" id="debt-zone">
-                    <div id="gauge-label" style="font-weight:bold;">Taux d'endettement : 0%</div>
+                    <div id="gauge-label" style="font-weight:bold;">Endettement : 0%</div>
                     <div class="gauge-container"><div id="gauge-bar" class="gauge-bar"></div></div>
                     <div id="debt-msg"></div>
                 </div>
 
                 <div id="inf-msg" class="info-card success-bg" style="margin-top:10px;"></div>
 
-                <div style="max-height: 220px; margin-top: 15px;">
+                <div style="height: 220px; margin-top: 20px;">
                     <canvas id="chartSimple"></canvas>
                 </div>
             </div>
@@ -112,17 +156,17 @@
         <div class="grid">
             <div class="input-group">
                 <h3>Option A</h3>
-                <input type="number" id="c1-cap" value="5000" oninput="compare()">
-                <input type="number" id="c1-rate" value="5" oninput="compare()">
-                <input type="number" id="c1-dur" value="12" oninput="compare()">
-                <div id="c1-res" style="color:var(--primary); font-weight:bold;">--</div>
+                <label>Capital (€)</label><input type="number" id="c1-cap" value="5000" oninput="compare()">
+                <label>Taux (%)</label><input type="number" id="c1-rate" value="5" oninput="compare()">
+                <label>Durée (mois)</label><input type="number" id="c1-dur" value="12" oninput="compare()">
+                <div id="c1-res" style="color:var(--primary); font-weight:bold; font-size: 1.1rem; margin-top: 10px;">--</div>
             </div>
             <div class="input-group" style="border-left: 5px solid var(--primary)">
                 <h3>Option B</h3>
-                <input type="number" id="c2-cap" value="5000" oninput="compare()">
-                <input type="number" id="c2-rate" value="0" oninput="compare()">
-                <input type="number" id="c2-dur" value="4" oninput="compare()">
-                <div id="c2-res" style="color:var(--primary); font-weight:bold;">--</div>
+                <label>Capital (€)</label><input type="number" id="c2-cap" value="5000" oninput="compare()">
+                <label>Taux (%)</label><input type="number" id="c2-rate" value="0" oninput="compare()">
+                <label>Durée (mois)</label><input type="number" id="c2-dur" value="4" oninput="compare()">
+                <div id="c2-res" style="color:var(--primary); font-weight:bold; font-size: 1.1rem; margin-top: 10px;">--</div>
             </div>
         </div>
         <div id="compare-winner" class="card-result" style="margin-top: 20px; background: var(--primary)">Comparez deux options</div>
@@ -139,14 +183,15 @@
                 <input type="number" id="cap-y" value="5" oninput="calcCap()">
             </div>
             <div class="card-result" style="background: var(--success)">
-                <span class="stat-label">Capacité d'emprunt estimée :</span>
+                <span style="font-size:0.9rem; opacity:0.8;">CAPACITÉ D'EMPRUNT</span>
                 <span class="big-val" id="cap-res" style="color: white">0 €</span>
             </div>
         </div>
     </div>
 </div>
 
-    <script>let chartS;
+<script>
+let chartS;
 
 function switchView(viewId, el) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -167,7 +212,7 @@ window.onload = () => {
             document.getElementById('s-cap').value = saved.cap;
             document.getElementById('s-rate').value = saved.rate;
             document.getElementById('s-dur').value = saved.dur;
-            document.getElementById('s-income').value = saved.inc || 2200;
+            if(saved.inc) document.getElementById('s-income').value = saved.inc;
         }
     }
     run(); compare(); calcCap();
@@ -197,30 +242,25 @@ function run() {
     const m_total = m_boosted + extra;
     const total_int = (m_boosted * n_new) - P;
     const realValLast = m_total / Math.pow(1 + inf, n_new);
+    const ratio = income > 0 ? (m_total / income) * 100 : 0;
 
-    // Affichage
     document.getElementById('res-m-total').innerText = Math.round(m_total) + " €";
     document.getElementById('res-detail').innerText = `${Math.round(m_boosted)}€ (prêt) + ${extra}€ (frais)`;
-    document.getElementById('inf-msg').innerText = `💡 En tenant compte de l'inflation, votre mensualité finale vaudra environ ${realValLast.toFixed(2)}€ actuels.`;
+    document.getElementById('inf-msg').innerText = `💡 Avec l'inflation, la dernière mensualité vaudra environ ${realValLast.toFixed(2)}€ actuels.`;
 
-    // Santé Financière
-    const ratio = income > 0 ? (m_total / income) * 100 : 0;
     const gBar = document.getElementById('gauge-bar');
     const gZone = document.getElementById('debt-zone');
-    document.getElementById('gauge-label').innerText = `Taux d'endettement : ${ratio.toFixed(1)}%`;
+    document.getElementById('gauge-label').innerText = `Endettement : ${ratio.toFixed(1)}%`;
     gBar.style.width = Math.min(ratio, 100) + "%";
     
     if (ratio < 20) { gBar.style.background = "var(--success)"; gZone.className="info-card success-bg"; document.getElementById('debt-msg').innerText="Budget sain."; }
     else if (ratio < 33) { gBar.style.background = "var(--warning)"; gZone.className="info-card warning-bg"; document.getElementById('debt-msg').innerText="Vigilance (limite 33%)."; }
     else { gBar.style.background = "var(--danger)"; gZone.className="info-card danger-bg"; document.getElementById('debt-msg').innerText="Alerte : endettement trop élevé !"; }
 
-    // Checklist de Vigilance (LA LIGNE AJOUTÉE ICI)
     updateVigilance(P, r_ann * 100, n_new, ratio, total_int, extra * n_new);
 
-    // Boost Notif
-    if (boost > 0) {
-        document.getElementById('boost-notif').innerText = `🚀 Gain : -${Math.round(n_base - n_new)} mois de crédit !`;
-    } else { document.getElementById('boost-notif').innerText = ""; }
+    if (boost > 0) document.getElementById('boost-notif').innerText = `🚀 Gain : -${Math.round(n_base - n_new)} mois de crédit !`;
+    else document.getElementById('boost-notif').innerText = "";
 
     updateChart(P, total_int, extra * n_new);
     localStorage.setItem('financeProSave', JSON.stringify({cap: P, rate: r_ann*100, dur: n_base, inc: income}));
@@ -231,19 +271,12 @@ function updateVigilance(P, r_ann_pct, n, ratio, int, totalFees) {
     if(!list) return;
     list.innerHTML = "";
     let conseils = [];
-
-    if (r_ann_pct > 5) conseils.push("❌ <b>Taux élevé :</b> Ton taux dépasse 5%. C'est cher.");
-    else conseils.push("✅ <b>Taux correct :</b> Ton taux est raisonnable.");
-
-    if (n > 60) conseils.push("⚠️ <b>Durée longue :</b> Tu vas payer beaucoup d'intérêts sur la durée.");
+    if (r_ann_pct > 5) conseils.push("❌ <b>Taux élevé :</b> Ton taux dépasse 5%.");
+    else conseils.push("✅ <b>Taux correct :</b> Taux raisonnable.");
+    if (n > 60) conseils.push("⚠️ <b>Durée longue :</b> Beaucoup d'intérêts sur la durée.");
     if (ratio > 33) conseils.push("🚨 <b>Danger budget :</b> Tu dépasses les 33% d'endettement !");
-    if (totalFees > int) conseils.push("🧐 <b>Frais élevés :</b> L'assurance/entretien coûte plus cher que le crédit.");
-
-    conseils.forEach(txt => {
-        let li = document.createElement('li');
-        li.innerHTML = txt;
-        list.appendChild(li);
-    });
+    if (totalFees > int) conseils.push("🧐 <b>Frais élevés :</b> Assurance/entretien coûte plus cher que le crédit.");
+    conseils.forEach(txt => { let li = document.createElement('li'); li.innerHTML = txt; li.style.marginBottom = "5px"; list.appendChild(li); });
 }
 
 function updateChart(cap, int, fees) {
@@ -251,10 +284,7 @@ function updateChart(cap, int, fees) {
     if (chartS) chartS.destroy();
     chartS = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-            labels: ['Capital', 'Intérêts', 'Frais/Assurance'],
-            datasets: [{ data: [cap, int, fees], backgroundColor: ['#2563eb', '#ef4444', '#f59e0b'] }]
-        },
+        data: { labels: ['Capital', 'Intérêts', 'Frais/Assurance'], datasets: [{ data: [cap, int, fees], backgroundColor: ['#2563eb', '#ef4444', '#f59e0b'] }] },
         options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
     });
 }
@@ -283,23 +313,21 @@ function calcCap() {
     document.getElementById('cap-res').innerText = Math.floor(p).toLocaleString() + " €";
 }
 
-function shareLink() {
+async function shareLink() {
     const url = new URL(window.location.href);
     url.searchParams.set('cap', document.getElementById('s-cap').value);
     url.searchParams.set('rate', document.getElementById('s-rate').value);
     url.searchParams.set('dur', document.getElementById('s-dur').value);
-    navigator.clipboard.writeText(url.toString());
-    alert("Lien de partage copié ! 🔗");
-}</script>
-<script>
-  // Enregistrement du Service Worker pour le mode hors-ligne
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('Service Worker enregistré avec succès.', reg))
-        .catch(err => console.log('Erreur lors de l\'enregistrement du Service Worker.', err));
-    });
-  }
+    try {
+        if (navigator.share) { await navigator.share({ title: 'Simulation Finance', text: 'Regarde ma simulation de prêt', url: url.toString() }); } 
+        else { await navigator.clipboard.writeText(url.toString()); alert("Lien copié !"); }
+    } catch (err) { console.log(err); }
+}
+
+// Enregistrement PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => console.log(err)); });
+}
 </script>
 </body>
 </html>
