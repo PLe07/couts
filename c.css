@@ -5,3 +5,24 @@
     input { background: #1e293b; color: white; border-color: #475569; }
     label { color: #cbd5e1; }
 }
+
+/* Optimisation pour mobile */
+@media (max-width: 600px) {
+    body { padding: 10px; }
+    .container { padding: 15px; border-radius: 0; } /* Plein écran sur tel */
+    .grid, .comparison-grid { grid-template-columns: 1fr; }
+    .big-val { font-size: 1.8rem; }
+    .tabs { 
+        position: sticky; top: 0; background: white; z-index: 100;
+        overflow-x: auto; white-space: nowrap; 
+    }
+    input { font-size: 16px; } /* Empêche le zoom auto sur iPhone */
+}
+
+/* Style des boutons pour le pouce */
+.btn, .tab {
+    min-height: 44px; /* Taille standard Apple pour les doigts */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
