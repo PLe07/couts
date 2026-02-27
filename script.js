@@ -158,12 +158,24 @@ function calcCap() {
     document.getElementById('cap-res').innerText = Math.floor(p).toLocaleString() + " €";
 }
 
-// PARTAGE
-function shareLink() {
+async function shareLink() {
     const url = new URL(window.location.href);
     url.searchParams.set('cap', document.getElementById('s-cap').value);
     url.searchParams.set('rate', document.getElementById('s-rate').value);
     url.searchParams.set('dur', document.getElementById('s-dur').value);
-    navigator.clipboard.writeText(url.toString());
-    alert("Lien de partage copié ! 🔗");
+
+    const shareData = {
+        title: 'Ma Simulation Finance',
+        text: 'Regarde ce calcul de prêt !',
+        url: url.toString()
+    };
+
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData); // Menu de partage mobile
+        } else {
+            await navigator.clipboard.writeText(url.toString());
+            alert("Lien copié !");
+        }
+    } catch (err) { console.log(err); }
 }
