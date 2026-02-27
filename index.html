@@ -3,100 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulateur de Crédit Expert</title>
+    <title>Calculateur de Prêt Pro - Graphique & Tableau</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #eceff1; color: #333; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
-        input { width: 100%; padding: 12px; border: 2px solid #dfe6e9; border-radius: 8px; box-sizing: border-box; transition: 0.3s; }
-        input:focus { border-color: #3498db; outline: none; }
-        .results-panel { margin-top: 30px; padding: 20px; border-radius: 10px; background: #f8f9fa; display: flex; justify-content: space-around; text-align: center; }
-        .stat { flex: 1; }
-        .stat-value { display: block; font-size: 1.5em; font-weight: bold; color: #2980b9; }
-        .stat-label { font-size: 0.8em; color: #7f8c8d; text-transform: uppercase; }
-        .summary { margin-top: 20px; padding: 15px; border-left: 5px solid #3498db; background: #e1f5fe; font-style: italic; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; color: #1a1a1a; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .grid-input { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; color: #444; }
+        
+        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; }
+        @media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
+
+        .stats { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .stat-item { margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .stat-item:last-child { border: none; }
+        .stat-label { font-size: 13px; color: #64748b; text-transform: uppercase; }
+        .stat-value { font-size: 22px; font-weight: bold; color: #0f172a; display: block; }
+
+        .table-container { margin-top: 40px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th { background: #334155; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
+        tr:nth-child(even) { background: #f8fafc; }
+
+        canvas { max-width: 100%; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🏦 Simulateur de Prêt Complet</h1>
-    
-    <div class="grid">
+    <div class="header">
+        <h1>📊 Simulateur de Crédit Avancé</h1>
+        <p>Calculez l'impact réel de vos emprunts</p>
+    </div>
+
+    <div class="grid-input">
         <div>
-            <label>Montant de l'emprunt (€)</label>
-            <input type="number" id="capital" value="10000" oninput="update()">
+            <label>Capital emprunté (€)</label>
+            <input type="number" id="capital" value="5000" oninput="runSimulation()">
         </div>
         <div>
-            <label>Taux d'intérêt annuel (%)</label>
-            <input type="number" id="rate" value="4.5" step="0.1" oninput="update()">
+            <label>Taux annuel (%)</label>
+            <input type="number" id="rate" value="4.5" step="0.1" oninput="runSimulation()">
         </div>
         <div>
-            <label>Durée du prêt (mois)</label>
-            <input type="number" id="duration" value="48" oninput="update()">
-        </div>
-        <div>
-            <label>Frais de dossier / Assurance (€)</label>
-            <input type="number" id="extra" value="0" oninput="update()">
+            <label>Durée (mois)</label>
+            <input type="number" id="duration" value="24" oninput="runSimulation()">
         </div>
     </div>
 
-    <div class="results-panel">
-        <div class="stat">
-            <span class="stat-label">Mensualité</span>
-            <span class="stat-value" id="monthly-out">0 €</span>
+    <div class="main-content">
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Mensualité</span>
+                <span class="stat-value" id="res-monthly">--</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Coût des intérêts</span>
+                <span class="stat-value" id="res-interests" style="color: #ef4444;">--</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Total remboursé</span>
+                <span class="stat-value" id="res-total">--</span>
+            </div>
         </div>
-        <div class="stat">
-            <span class="stat-label">Coût Total Intérêts</span>
-            <span class="stat-value" id="interest-out" style="color: #e74c3c;">0 €</span>
-        </div>
-        <div class="stat">
-            <span class="stat-label">Remboursement Total</span>
-            <span class="stat-value" id="total-out">0 €</span>
+        <div>
+            <canvas id="myChart"></canvas>
         </div>
     </div>
 
-    <div id="summary-text" class="summary">
-        Modifiez les valeurs pour voir l'impact sur votre budget.
+    <div class="table-container">
+        <h3>📅 Tableau d'amortissement</h3>
+        <table id="amortization-table">
+            <thead>
+                <tr>
+                    <th>Mois</th>
+                    <th>Mensualité</th>
+                    <th>Intérêts</th>
+                    <th>Capital remboursé</th>
+                    <th>Restant dû</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
 </div>
 
 <script>
-function update() {
+let myChart;
+
+function runSimulation() {
     const P = parseFloat(document.getElementById('capital').value);
     const annualRate = parseFloat(document.getElementById('rate').value) / 100;
     const n = parseInt(document.getElementById('duration').value);
-    const extra = parseFloat(document.getElementById('extra').value) || 0;
 
     if (!P || P <= 0 || n <= 0) return;
 
-    // Taux mensuel
     const r = annualRate / 12;
-
-    let monthly;
-    if (r === 0) {
-        monthly = P / n;
-    } else {
-        // Formule de calcul de mensualité
-        monthly = (P * r) / (1 - Math.pow(1 + r, -n));
-    }
-
-    const totalRepaid = (monthly * n) + extra;
+    const monthly = (r === 0) ? P / n : (P * r) / (1 - Math.pow(1 + r, -n));
+    const totalRepaid = monthly * n;
     const totalInterest = totalRepaid - P;
 
-    document.getElementById('monthly-out').innerText = monthly.toFixed(2) + " €";
-    document.getElementById('interest-out').innerText = totalInterest.toFixed(2) + " €";
-    document.getElementById('total-out').innerText = totalRepaid.toFixed(2) + " €";
+    // Mise à jour des chiffres
+    document.getElementById('res-monthly').innerText = monthly.toFixed(2) + " €";
+    document.getElementById('res-interests').innerText = totalInterest.toFixed(2) + " €";
+    document.getElementById('res-total').innerText = totalRepaid.toFixed(2) + " €";
 
-    document.getElementById('summary-text').innerHTML = 
-        `Pour emprunter <b>${P}€</b>, vous allez payer <b>${n}</b> mensualités de <b>${monthly.toFixed(2)}€</b>. <br>` +
-        `Au final, votre achat vous aura coûté <b>${totalRepaid.toFixed(2)}€</b> (prix initial + intérêts et frais).`;
+    updateChart(P, totalInterest);
+    updateTable(P, r, monthly, n);
 }
 
-// Lancement initial
-update();
+function updateChart(capital, interests) {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    
+    if (myChart) myChart.destroy();
+
+    myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Capital (Prix de base)', 'Intérêts (Coût du prêt)'],
+            datasets: [{
+                data: [capital, interests],
+                backgroundColor: ['#3b82f6', '#ef4444'],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+function updateTable(P, r, monthly, n) {
+    const tbody = document.querySelector('#amortization-table tbody');
+    tbody.innerHTML = "";
+    
+    let remaining = P;
+    
+    for (let i = 1; i <= n; i++) {
+        let interestPart = remaining * r;
+        let principalPart = monthly - interestPart;
+        remaining -= principalPart;
+
+        // Sécurité pour éviter les petits chiffres négatifs dus à l'arrondi JS
+        if (remaining < 0) remaining = 0;
+
+        const row = `<tr>
+            <td>${i}</td>
+            <td>${monthly.toFixed(2)} €</td>
+            <td>${interestPart.toFixed(2)} €</td>
+            <td>${principalPart.toFixed(2)} €</td>
+            <td>${remaining.toFixed(2)} €</td>
+        </tr>`;
+        tbody.innerHTML += row;
+    }
+}
+
+// Initialisation
+runSimulation();
 </script>
+
 </body>
 </html>
